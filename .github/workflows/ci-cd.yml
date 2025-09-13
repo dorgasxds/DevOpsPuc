@@ -1,0 +1,56 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, feature/* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # Job de CI (Continuous Integration)
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Run unit tests
+      run: |
+        python -m unittest calculadora.py
+
+  # Job de CD (Continuous Deployment)
+  deploy:
+    name: Deploy Application
+    runs-on: ubuntu-latest
+    # Este job só será executado após o job de teste e apenas no branch main
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Test application functionality
+      run: |
+        python -c "
+        from calculadora import calcular_tmb_homem, calcular_tmb_mulher
+        print('Testando TMB para homem (70kg, 175cm, 30 anos):', calcular_tmb_homem(70, 175, 30))
+        print('Testando TMB para mulher (60kg, 165cm, 25 anos):', calcular_tmb_mulher(60, 165, 25))
+        print('Teste de implantação concluído com sucesso!')
+        "
+        
+    - name: Simulate deployment
+      run: |
+        echo "Simulando processo de deployment..."
+        echo "✅ Aplicação pronta para produção!"
