@@ -16,4 +16,4 @@ jobs:
       with:
         python-version: '3.9'
     - name: Run tests
-      run: python -m unittest test_calculator.py
+      run: python -m unittest teste_calc.py
