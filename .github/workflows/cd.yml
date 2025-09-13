@@ -1,4 +1,4 @@
-name: CD
+name: Continuous Deployment
 
 on:
   push:
@@ -7,7 +7,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
 
     steps:
     - name: Checkout code
@@ -18,7 +17,7 @@ jobs:
       with:
         python-version: '3.9'
 
-    - name: Test application
+    - name: Test application functionality
       run: |
         python -c "
         from calculadora import calcular_tmb_homem, calcular_tmb_mulher
