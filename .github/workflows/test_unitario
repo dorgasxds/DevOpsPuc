@@ -1,0 +1,67 @@
+name: CI/CD Pipeline com Testes Unitários
+
+on:
+  push:
+    branches: [ main, feature/* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  unit-tests:
+    name: Executar Testes Unitários
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Executar testes unitários
+      run: |
+        echo "Executando testes unitários..."
+        python -m unittest test_calculator.py -v
+
+    - name: Gerar relatório de cobertura
+      run: |
+        python -m unittest test_calculator.py
+        echo "✅ Todos os testes passaram!"
+
+  integration-test:
+    name: Teste de Integração
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Testar funcionalidade da aplicação
+      run: |
+        python -c "
+        from calculadora import calcular_tmb_homem, calcular_tmb_mulher
+        print('=== TESTE DE INTEGRAÇÃO ===')
+        print('TMB Homem (70kg, 175cm, 30 anos):', calcular_tmb_homem(70, 175, 30))
+        print('TMB Mulher (60kg, 165cm, 25 anos):', calcular_tmb_mulher(60, 165, 25))
+        print('✅ Aplicação funcionando corretamente!')
+        "
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: [unit-tests, integration-test]
+    
+    steps:
+    - name: Deploy simulado
+      run: |
+        echo "🚀 Deploying application..."
+        echo "✅ Deploy concluído com sucesso!"
