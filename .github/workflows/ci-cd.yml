@@ -25,6 +25,18 @@ jobs:
       run: |
         python -m unittest calculadora.py
 
+    - name: Notificar Discord - Testes
+      uses: Ilshidur/action-discord@master
+      with:
+        webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
+        message: |
+          🧪 **Testes Executados** 
+          Repositório: ${{ github.repository }}
+          Branch: ${{ github.ref }}
+          Status: ${{ job.status }}
+          Commit: ${{ github.sha }}
+          Executado por: ${{ github.actor }}
+
   # Job de CD (Continuous Deployment)
   deploy:
     name: Deploy Application
@@ -54,3 +66,35 @@ jobs:
       run: |
         echo "Simulando processo de deployment..."
         echo "✅ Aplicação pronta para produção!"
+
+    - name: Notificar Discord - Deploy
+      uses: Ilshidur/action-discord@master
+      with:
+        webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
+        message: |
+          🚀 **Deploy Realizado** 
+          Repositório: ${{ github.repository }}
+          Branch: ${{ github.ref }}
+          Status: Deploy concluído com sucesso!
+          Commit: ${{ github.sha }}
+
+  # Job adicional para notificações gerais
+  discord-notifications:
+    name: Discord Notifications
+    runs-on: ubuntu-latest
+    needs: [test, deploy]
+    if: always()
+    
+    steps:
+    - name: Notificar status final do workflow
+      uses: Ilshidur/action-discord@master
+      with:
+        webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
+        message: |
+          📊 **Workflow Concluído** 
+          Repositório: ${{ github.repository }}
+          Workflow: ${{ github.workflow }}
+          Status Geral: ${{ job.status }}
+          Branch: ${{ github.ref }}
+          Commit: ${{ github.sha }}
+          Executado por: ${{ github.actor }}
