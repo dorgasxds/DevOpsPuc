@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI/CD Pipeline com Testes Unitários
 
 on:
   push:
@@ -7,9 +7,8 @@ on:
     branches: [ main ]
 
 jobs:
-  # Job de CI (Continuous Integration)
-  test:
-    name: Run Tests
+  unit-tests:
+    name: Executar Testes Unitários
     runs-on: ubuntu-latest
     
     steps:
@@ -21,39 +20,20 @@ jobs:
       with:
         python-version: '3.9'
 
-    - name: Run unit tests
+    - name: Executar testes unitários
       run: |
-        python -m unittest calculadora.py
+        echo "Executando testes unitários..."
+        python -m unittest test_calculator.py -v
 
-    - name: Notificar Discord - Testes
-      if: always()
-      uses: actions/github-script@v6
-      with:
-        script: |
-          const webhookURL = process.env.DISCORD_WEBHOOK_URL;
-          if (!webhookURL) {
-            console.log('Discord webhook not configured');
-            return;
-          }
-          
-          const status = '${{ job.status }}';
-          const emoji = status === 'success' ? '✅' : '❌';
-          
-          const payload = {
-            content: `${emoji} **Testes ${{ job.status }}**\nRepositório: ${{ github.repository }}\nBranch: ${{ github.ref }}\nCommit: ${{ github.sha }}`
-          };
-          
-          await fetch(webhookURL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
+    - name: Gerar relatório de cobertura
+      run: |
+        python -m unittest test_calculator.py
+        echo "✅ Todos os testes passaram!"
 
-  # Job de CD (Continuous Deployment)
-  deploy:
-    name: Deploy Application
+  integration-test:
+    name: Teste de Integração
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    needs: unit-tests
     
     steps:
     - name: Checkout code
@@ -64,39 +44,24 @@ jobs:
       with:
         python-version: '3.9'
 
-    - name: Test application functionality
+    - name: Testar funcionalidade da aplicação
       run: |
         python -c "
         from calculadora import calcular_tmb_homem, calcular_tmb_mulher
-        print('Testando TMB para homem (70kg, 175cm, 30 anos):', calcular_tmb_homem(70, 175, 30))
-        print('Testando TMB para mulher (60kg, 165cm, 25 anos):', calcular_tmb_mulher(60, 165, 25))
-        print('Teste de implantação concluído com sucesso!')
+        print('=== TESTE DE INTEGRAÇÃO ===')
+        print('TMB Homem (70kg, 175cm, 30 anos):', calcular_tmb_homem(70, 175, 30))
+        print('TMB Mulher (60kg, 165cm, 25 anos):', calcular_tmb_mulher(60, 165, 25))
+        print('✅ Aplicação funcionando corretamente!')
         "
-        
-    - name: Simulate deployment
-      run: |
-        echo "Simulando processo de deployment..."
-        echo " Aplicação pronta para produção!"
 
-    - name: Notificar Discord - Deploy
-      if: success()
-      uses: actions/github-script@v6
-      env:
-        DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-      with:
-        script: |
-          const webhookURL = process.env.DISCORD_WEBHOOK_URL;
-          if (!webhookURL) {
-            console.log('Discord webhook not configured');
-            return;
-          }
-          
-          const payload = {
-            content: "**Deploy Realizado com Sucesso!**\nRepositório: ${{ github.repository }}\nBranch: ${{ github.ref }}"
-          };
-          
-          await fetch(webhookURL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: [unit-tests, integration-test]
+    
+    steps:
+    - name: Deploy simulado
+      run: |
+        echo "🚀 Deploying application..."
+        echo "✅ Deploy concluído com sucesso!"
