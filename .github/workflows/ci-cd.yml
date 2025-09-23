@@ -76,7 +76,7 @@ jobs:
     - name: Simulate deployment
       run: |
         echo "Simulando processo de deployment..."
-        echo "✅ Aplicação pronta para produção!"
+        echo " Aplicação pronta para produção!"
 
     - name: Notificar Discord - Deploy
       if: success()
@@ -92,7 +92,7 @@ jobs:
           }
           
           const payload = {
-            content: "🚀 **Deploy Realizado com Sucesso!**\nRepositório: ${{ github.repository }}\nBranch: ${{ github.ref }}\nCommit: ${{ github.sha }}"
+            content: "**Deploy Realizado com Sucesso!**\nRepositório: ${{ github.repository }}\nBranch: ${{ github.ref }}"
           };
           
           await fetch(webhookURL, {
