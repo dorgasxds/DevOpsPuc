@@ -26,22 +26,22 @@ jobs:
         python -m unittest calculadora.py
 
     - name: Notificar Discord - Testes
-      uses: Ilshidur/action-discord@master
+      uses: sarisia/actions-status-discord@v1
+      if: always()
       with:
-        webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
-        message: |
-          🧪 **Testes Executados** 
+        webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        title: "🧪 Testes Executados - ${{ job.status }}"
+        description: |
           Repositório: ${{ github.repository }}
           Branch: ${{ github.ref }}
-          Status: ${{ job.status }}
           Commit: ${{ github.sha }}
           Executado por: ${{ github.actor }}
+        color: ${{ job.status == 'success' && '00ff00' || 'ff0000' }}
 
   # Job de CD (Continuous Deployment)
   deploy:
     name: Deploy Application
     runs-on: ubuntu-latest
-    # Este job só será executado após o job de teste e apenas no branch main
     if: github.ref == 'refs/heads/main'
     
     steps:
@@ -68,33 +68,13 @@ jobs:
         echo "✅ Aplicação pronta para produção!"
 
     - name: Notificar Discord - Deploy
-      uses: Ilshidur/action-discord@master
+      uses: sarisia/actions-status-discord@v1
+      if: success()
       with:
-        webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
-        message: |
-          🚀 **Deploy Realizado** 
+        webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        title: "🚀 Deploy Realizado com Sucesso!"
+        description: |
           Repositório: ${{ github.repository }}
           Branch: ${{ github.ref }}
-          Status: Deploy concluído com sucesso!
           Commit: ${{ github.sha }}
-
-  # Job adicional para notificações gerais
-  discord-notifications:
-    name: Discord Notifications
-    runs-on: ubuntu-latest
-    needs: [test, deploy]
-    if: always()
-    
-    steps:
-    - name: Notificar status final do workflow
-      uses: Ilshidur/action-discord@master
-      with:
-        webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
-        message: |
-          📊 **Workflow Concluído** 
-          Repositório: ${{ github.repository }}
-          Workflow: ${{ github.workflow }}
-          Status Geral: ${{ job.status }}
-          Branch: ${{ github.ref }}
-          Commit: ${{ github.sha }}
-          Executado por: ${{ github.actor }}
+        color: "00ff00"
