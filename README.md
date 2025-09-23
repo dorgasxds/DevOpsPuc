@@ -11,5 +11,5 @@ Execute o script: calculator.py
 - Cálculo de TMB para homens e mulheres
 - Validação de entrada de dados
 - Testes unitários
-- Teste mensagem no discord
+- Teste mensagem no discord 2
 
