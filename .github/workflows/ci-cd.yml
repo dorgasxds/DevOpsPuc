@@ -23,11 +23,11 @@ jobs:
     - name: Executar testes unitários
       run: |
         echo "Executando testes unitários..."
-        python -m unittest test_calculator.py -v
+        python -m unittest calculadora.py -v
 
     - name: Gerar relatório de cobertura
       run: |
-        python -m unittest test_calculator.py
+        python -m unittest calculadora.py
         echo "✅ Todos os testes passaram!"
 
   integration-test:
