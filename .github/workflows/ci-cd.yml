@@ -26,17 +26,28 @@ jobs:
         python -m unittest calculadora.py
 
     - name: Notificar Discord - Testes
-      uses: sarisia/actions-status-discord@v1
       if: always()
+      uses: actions/github-script@v6
       with:
-        webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        title: "🧪 Testes Executados - ${{ job.status }}"
-        description: |
-          Repositório: ${{ github.repository }}
-          Branch: ${{ github.ref }}
-          Commit: ${{ github.sha }}
-          Executado por: ${{ github.actor }}
-        color: ${{ job.status == 'success' && '00ff00' || 'ff0000' }}
+        script: |
+          const webhookURL = process.env.DISCORD_WEBHOOK_URL;
+          if (!webhookURL) {
+            console.log('Discord webhook not configured');
+            return;
+          }
+          
+          const status = '${{ job.status }}';
+          const emoji = status === 'success' ? '✅' : '❌';
+          
+          const payload = {
+            content: `${emoji} **Testes ${{ job.status }}**\nRepositório: ${{ github.repository }}\nBranch: ${{ github.ref }}\nCommit: ${{ github.sha }}`
+          };
+          
+          await fetch(webhookURL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
 
   # Job de CD (Continuous Deployment)
   deploy:
@@ -68,13 +79,24 @@ jobs:
         echo "✅ Aplicação pronta para produção!"
 
     - name: Notificar Discord - Deploy
-      uses: sarisia/actions-status-discord@v1
       if: success()
+      uses: actions/github-script@v6
+      env:
+        DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       with:
-        webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        title: "🚀 Deploy Realizado com Sucesso!"
-        description: |
-          Repositório: ${{ github.repository }}
-          Branch: ${{ github.ref }}
-          Commit: ${{ github.sha }}
-        color: "00ff00"
+        script: |
+          const webhookURL = process.env.DISCORD_WEBHOOK_URL;
+          if (!webhookURL) {
+            console.log('Discord webhook not configured');
+            return;
+          }
+          
+          const payload = {
+            content: "🚀 **Deploy Realizado com Sucesso!**\nRepositório: ${{ github.repository }}\nBranch: ${{ github.ref }}\nCommit: ${{ github.sha }}"
+          };
+          
+          await fetch(webhookURL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
